@@ -79,7 +79,7 @@
 <script>
   const ALPHABET = "23456789CFGHJMPQRVWX";
 
-  // SUBO'T TUPAK NA STANDARD PLUS CODE ALGORITHM (100% MATCH)
+  // CORRECTED FULL 10-CHARACTER PLUS CODE GENERATOR
   function encodeStandardPlusCode(lat, lng) {
     lat = Math.min(Math.max(lat, -90), 90);
     lng = ((lng + 180) % 360 + 360) % 360 - 180;
@@ -87,32 +87,32 @@
 
     let latVal = lat + 90;
     let lngVal = lng + 180;
-    let code = "";
-
+    
     let latPlace = 20;
     let lngPlace = 20;
 
-    // Unang 8 characters (4 pairs)
+    let rawCode = "";
+
+    // 1. Kukuha ng eksaktong 8 characters (4 pairs)
     for (let i = 0; i < 4; i++) {
       let d1 = Math.floor(latVal / latPlace);
       let d2 = Math.floor(lngVal / lngPlace);
       latVal -= d1 * latPlace;
       lngVal -= d2 * lngPlace;
-      code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
       
+      rawCode += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
+
       latPlace /= 20;
       lngPlace /= 20;
     }
 
-    // Ilalagay ang '+' sign eksakto pagkatapos ng 8th character
-    code += "+";
-
-    // Huling 2 characters (5th pair) para sa eksaktong pwesto
+    // 2. Kukuha ng huling 2 characters (5th pair)
     let d1 = Math.floor(latVal / latPlace);
     let d2 = Math.floor(lngVal / lngPlace);
-    code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
+    let lastPair = ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
 
-    return code;
+    // 3. Pagsasamahin sa tamang format: 8 Chars + '+' + 2 Chars
+    return rawCode + "+" + lastPair;
   }
 
   function generateAndSendSMS() {
@@ -138,12 +138,12 @@
           const latFixed = lat.toFixed(5);
           const lngFixed = lng.toFixed(5);
 
-          // Tumpak na pagkuha ng Plus Code
+          // Kunin ang inayos na Plus Code
           const plusCode = encodeStandardPlusCode(lat, lng);
 
           status.innerText = "📱 Binubuksan ang Messaging App...";
 
-          // Format ng SMS (Pure text lang para iwas harang sa Telco)
+          // Text message format
           const smsText = `SHAREMAP DIGITAL ADDRESS\n\n` +
                           `Pangalan: ${name || 'N/A'}\n` +
                           `Landmark: ${landmark || 'N/A'}\n\n` +
@@ -168,7 +168,7 @@
           btn.disabled = false;
           status.innerText = "❌ Nabigo ang pagkuha ng GPS.";
         },
-        { enableHighAccuracy: false, timeout: 5000, maximumAge: Infinity }
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
       );
     } else {
       alert("Hindi suportado ng browser mo ang GPS location.");

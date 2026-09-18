@@ -1,41 +1,75 @@
 <!DOCTYPE html>
 <html lang="tl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShareMap - Send via SMS</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: auto; }
-        .card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        button:disabled { background-color: #888; }
-        #status { font-size: 0.9em; color: #555; margin-top: 10px; text-align: center; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShareMap - Send via SMS</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      max-width: 400px; 
+      margin: auto; 
+      background-color: #f4f7f6;
+    }
+    .card { 
+      background: #ffffff;
+      border: 1px solid #ccc; 
+      padding: 20px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+    }
+    input, button { 
+      width: 100%; 
+      padding: 12px; 
+      margin-top: 10px; 
+      box-sizing: border-box; 
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button { 
+      background-color: #28a745; 
+      color: white; 
+      border: none; 
+      font-weight: bold; 
+      font-size: 16px;
+      cursor: pointer; 
+    }
+    button:disabled { 
+      background-color: #888; 
+    }
+    #status { 
+      font-size: 0.9em; 
+      color: #555; 
+      margin-top: 12px; 
+      text-align: center; 
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>📍 ShareMap via SMS</h2>
-    
-    <label>Cellphone Number ng Seller/Rider:</label>
-    <input type="tel" id="sellerNum" placeholder="09123456789" value="09123456789">
+  <h2>📍 ShareMap via SMS</h2>
+  
+  <label>Cellphone Number ng Seller/Rider:</label>
+  <input type="tel" id="sellerNum" placeholder="09123456789" value="09123456789">
 
-    <label>Pangalan Mo:</label>
-    <input type="text" id="buyerName" placeholder="hal. Juan Cruz">
+  <label>Pangalan Mo:</label>
+  <input type="text" id="buyerName" placeholder="hal. Juan Cruz">
 
-    <label>Landmark / Katabi:</label>
-    <input type="text" id="landmark" placeholder="hal. Katabi ng Pulang Gate">
+  <label>Landmark / Katabi:</label>
+  <input type="text" id="landmark" placeholder="hal. Katabi ng Pulang Gate">
 
-    <button id="sendBtn" onclick="generateAndSendSMS()">📱 GENERATE & SEND SMS</button>
-    <p id="status"></p>
+  <button id="sendBtn" onclick="generateAndSendSMS()">📱 GENERATE & SEND SMS</button>
+  <p id="status"></p>
 </div>
 
 <script>
-// --- CORRECT & ACCURATE PLUS CODE GENERATOR (Galing sa iyong baseline code) ---
-const ALPHABET = "23456789CFGHJMPQRVWX";
+  const ALPHABET = "23456789CFGHJMPQRVWX";
 
-function encodeStandardPlusCode(lat, lng) {
+  // EKSALTONG PLUS CODE GENERATOR GALING SA IYONG BATAYANG CODE
+  function encodeStandardPlusCode(lat, lng) {
     lat = Math.min(Math.max(lat, -90), 90);
     lng = ((lng + 180) % 360 + 360) % 360 - 180;
     if (lat === 90) lat = 89.999999;
@@ -47,30 +81,27 @@ function encodeStandardPlusCode(lat, lng) {
     let latPlace = 20;
     let lngPlace = 20;
 
-    // Unang 8 characters (halimbawa: 7Q53WJQ4)
     for (let i = 0; i < 4; i++) {
-        let d1 = Math.floor(latVal / latPlace);
-        let d2 = Math.floor(lngVal / lngPlace);
-        latVal -= d1 * latPlace;
-        lngVal -= d2 * lngPlace;
-        code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
-        
-        latPlace /= 20;
-        lngPlace /= 20;
+      let d1 = Math.floor(latVal / latPlace);
+      let d2 = Math.floor(lngVal / lngPlace);
+      latVal -= d1 * latPlace;
+      lngVal -= d2 * lngPlace;
+      code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
+      
+      latPlace /= 20;
+      lngPlace /= 20;
     }
 
-    // Paglalagay ng Plus (+) sign pagkatapos ng 8 characters
-    code = code.substring(0, 4) + "+" + code.substring(4);
+    code += "+";
 
-    // Pag-compute sa huling 2 characters
     let d1 = Math.floor(latVal / latPlace);
     let d2 = Math.floor(lngVal / lngPlace);
     code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
 
     return code;
-}
+  }
 
-async function generateAndSendSMS() {
+  function generateAndSendSMS() {
     const btn = document.getElementById('sendBtn');
     const status = document.getElementById('status');
     const phone = document.getElementById('sellerNum').value.trim();
@@ -78,58 +109,58 @@ async function generateAndSendSMS() {
     const landmark = document.getElementById('landmark').value.trim();
 
     if (!phone) {
-        alert("Paki-lagay ang cellphone number ng Seller o Rider!");
-        return;
+      alert("Paki-lagay ang cellphone number ng Seller o Rider!");
+      return;
     }
 
     btn.disabled = true;
     status.innerText = "🔍 Kumukuha ng GPS location...";
 
     if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const latFixed = lat.toFixed(5);
-                const lngFixed = lng.toFixed(5);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const latFixed = lat.toFixed(5);
+          const lngFixed = lng.toFixed(5);
 
-                // Kukunin ang tamang Plus Code gamit ang inayos na algorithm
-                const plusCode = encodeStandardPlusCode(lat, lng);
+          // Paggamit ng tumpak na Plus Code encoder
+          const plusCode = encodeStandardPlusCode(lat, lng);
 
-                status.innerText = "📱 Binubuksan ang Messaging App...";
+          status.innerText = "📱 Binubuksan ang Messaging App...";
 
-                // Plain text message (Walang web link para hindi ma-block ng telco)
-                const smsText = `SHAREMAP DIGITAL ADDRESS\n\n` +
-                                `Pangalan: ${name || 'N/A'}\n` +
-                                `Landmark: ${landmark || 'N/A'}\n\n` +
-                                `Plus Code:\n` +
-                                `${plusCode}\n\n` +
-                                `GPS Location:\n` +
-                                `${latFixed}, ${lngFixed}`;
+          // Format ng SMS (walang URL para iwas-block sa Telco)
+          const smsText = `SHAREMAP DIGITAL ADDRESS\n\n` +
+                          `Pangalan: ${name || 'N/A'}\n` +
+                          `Landmark: ${landmark || 'N/A'}\n\n` +
+                          `Plus Code:\n` +
+                          `${plusCode}\n\n` +
+                          `GPS Location:\n` +
+                          `${latFixed}, ${lngFixed}`;
 
-                const encodedText = encodeURIComponent(smsText);
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                const delimiter = isIOS ? '&' : '?';
+          const encodedText = encodeURIComponent(smsText);
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const delimiter = isIOS ? '&' : '?';
 
-                const smsUri = `sms:${phone}${delimiter}body=${encodedText}`;
+          const smsUri = `sms:${phone}${delimiter}body=${encodedText}`;
 
-                window.location.href = smsUri;
+          window.location.href = smsUri;
 
-                btn.disabled = false;
-                status.innerText = "✅ Nabuhat na ang SMS!";
-            },
-            (error) => {
-                alert("Paki-turn ON ang GPS / Location permission sa iyong phone.");
-                btn.disabled = false;
-                status.innerText = "❌ Nabigo ang pagkuha ng GPS.";
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
+          btn.disabled = false;
+          status.innerText = "✅ Nabuhat na ang SMS!";
+        },
+        (error) => {
+          alert("Paki-turn ON ang GPS / Location permission sa iyong phone.");
+          btn.disabled = false;
+          status.innerText = "❌ Nabigo ang pagkuha ng GPS.";
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
     } else {
-        alert("Hindi suportado ng browser mo ang GPS location.");
-        btn.disabled = false;
+      alert("Hindi suportado ng browser mo ang GPS location.");
+      btn.disabled = false;
     }
-}
+  }
 </script>
 
 </body>

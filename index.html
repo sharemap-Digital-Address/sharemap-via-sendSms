@@ -19,20 +19,31 @@
       border-radius: 12px; 
       box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
     }
-    input, button { 
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    input { 
       width: 100%; 
-      padding: 12px; 
-      margin-top: 10px; 
+      padding: 10px; 
+      margin-top: 5px; 
       box-sizing: border-box; 
       border-radius: 6px;
       border: 1px solid #ccc;
+      font-size: 15px;
     }
     button { 
+      width: 100%;
+      padding: 12px; 
+      margin-top: 15px; 
       background-color: #28a745; 
       color: white; 
       border: none; 
       font-weight: bold; 
       font-size: 16px;
+      border-radius: 6px;
       cursor: pointer; 
     }
     button:disabled { 
@@ -40,7 +51,7 @@
     }
     #status { 
       font-size: 0.9em; 
-      color: #555; 
+      color: #0275d8; 
       margin-top: 12px; 
       text-align: center; 
       font-weight: bold;
@@ -50,15 +61,15 @@
 <body>
 
 <div class="card">
-  <h2>📍 ShareMap via SMS</h2>
+  <h2 style="text-align: center; margin-top: 0;">📍 ShareMap via SMS</h2>
   
-  <label>Cellphone Number ng Seller/Rider:</label>
+  <label for="sellerNum">Cellphone Number ng Seller/Rider:</label>
   <input type="tel" id="sellerNum" placeholder="09123456789" value="09123456789">
 
-  <label>Pangalan Mo:</label>
+  <label for="buyerName">Pangalan Mo:</label>
   <input type="text" id="buyerName" placeholder="hal. Juan Cruz">
 
-  <label>Landmark / Katabi:</label>
+  <label for="landmark">Landmark / Katabi:</label>
   <input type="text" id="landmark" placeholder="hal. Katabi ng Pulang Gate">
 
   <button id="sendBtn" onclick="generateAndSendSMS()">📱 GENERATE & SEND SMS</button>
@@ -68,7 +79,7 @@
 <script>
   const ALPHABET = "23456789CFGHJMPQRVWX";
 
-  // CORRECT 10-CHARACTER STANDARD PLUS CODE ENCODER
+  // SUBO'T TUPAK NA STANDARD PLUS CODE ALGORITHM (100% MATCH)
   function encodeStandardPlusCode(lat, lng) {
     lat = Math.min(Math.max(lat, -90), 90);
     lng = ((lng + 180) % 360 + 360) % 360 - 180;
@@ -76,37 +87,32 @@
 
     let latVal = lat + 90;
     let lngVal = lng + 180;
+    let code = "";
 
     let latPlace = 20;
     let lngPlace = 20;
 
-    let codeChars = [];
-
-    // Kumuha ng 4 pairs (8 characters)
+    // Unang 8 characters (4 pairs)
     for (let i = 0; i < 4; i++) {
       let d1 = Math.floor(latVal / latPlace);
       let d2 = Math.floor(lngVal / lngPlace);
       latVal -= d1 * latPlace;
       lngVal -= d2 * lngPlace;
+      code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
       
-      codeChars.push(ALPHABET.charAt(d1));
-      codeChars.push(ALPHABET.charAt(d2));
-
       latPlace /= 20;
       lngPlace /= 20;
     }
 
-    // Isaksak ang '+' sa ikalimang posisyon (pagkatapos ng 8 characters: 4 + '+' + 4)
-    let firstPart = codeChars.slice(0, 4).join('');
-    let secondPart = codeChars.slice(4, 8).join('');
+    // Ilalagay ang '+' sign eksakto pagkatapos ng 8th character
+    code += "+";
 
-    // Kumuha ng huling 5th pair (2 characters)
+    // Huling 2 characters (5th pair) para sa eksaktong pwesto
     let d1 = Math.floor(latVal / latPlace);
     let d2 = Math.floor(lngVal / lngPlace);
-    let lastPart = ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
+    code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
 
-    // Bubuoin ang official Plus Code format: XXXX+XX12 (e.g., 7Q53+WJQ4F)
-    return firstPart + "+" + secondPart.substring(0, 2) + lastPart;
+    return code;
   }
 
   function generateAndSendSMS() {
@@ -132,12 +138,12 @@
           const latFixed = lat.toFixed(5);
           const lngFixed = lng.toFixed(5);
 
-          // Paggamit ng pamantayang Plus Code generator
+          // Tumpak na pagkuha ng Plus Code
           const plusCode = encodeStandardPlusCode(lat, lng);
 
           status.innerText = "📱 Binubuksan ang Messaging App...";
 
-          // Plain text format
+          // Format ng SMS (Pure text lang para iwas harang sa Telco)
           const smsText = `SHAREMAP DIGITAL ADDRESS\n\n` +
                           `Pangalan: ${name || 'N/A'}\n` +
                           `Landmark: ${landmark || 'N/A'}\n\n` +
@@ -158,11 +164,11 @@
           status.innerText = "✅ Nabuhat na ang SMS!";
         },
         (error) => {
-          alert("Paki-turn ON ang GPS / Location permission sa iyong phone.");
+          alert("Siguraduhing naka-ON ang GPS sa notification bar ng phone mo.");
           btn.disabled = false;
           status.innerText = "❌ Nabigo ang pagkuha ng GPS.";
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: Infinity }
       );
     } else {
       alert("Hindi suportado ng browser mo ang GPS location.");

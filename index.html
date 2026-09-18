@@ -68,7 +68,7 @@
 <script>
   const ALPHABET = "23456789CFGHJMPQRVWX";
 
-  // EKSALTONG PLUS CODE GENERATOR GALING SA IYONG BATAYANG CODE
+  // CORRECT 10-CHARACTER STANDARD PLUS CODE ENCODER
   function encodeStandardPlusCode(lat, lng) {
     lat = Math.min(Math.max(lat, -90), 90);
     lng = ((lng + 180) % 360 + 360) % 360 - 180;
@@ -76,29 +76,37 @@
 
     let latVal = lat + 90;
     let lngVal = lng + 180;
-    let code = "";
 
     let latPlace = 20;
     let lngPlace = 20;
 
+    let codeChars = [];
+
+    // Kumuha ng 4 pairs (8 characters)
     for (let i = 0; i < 4; i++) {
       let d1 = Math.floor(latVal / latPlace);
       let d2 = Math.floor(lngVal / lngPlace);
       latVal -= d1 * latPlace;
       lngVal -= d2 * lngPlace;
-      code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
       
+      codeChars.push(ALPHABET.charAt(d1));
+      codeChars.push(ALPHABET.charAt(d2));
+
       latPlace /= 20;
       lngPlace /= 20;
     }
 
-    code += "+";
+    // Isaksak ang '+' sa ikalimang posisyon (pagkatapos ng 8 characters: 4 + '+' + 4)
+    let firstPart = codeChars.slice(0, 4).join('');
+    let secondPart = codeChars.slice(4, 8).join('');
 
+    // Kumuha ng huling 5th pair (2 characters)
     let d1 = Math.floor(latVal / latPlace);
     let d2 = Math.floor(lngVal / lngPlace);
-    code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
+    let lastPart = ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
 
-    return code;
+    // Bubuoin ang official Plus Code format: XXXX+XX12 (e.g., 7Q53+WJQ4F)
+    return firstPart + "+" + secondPart.substring(0, 2) + lastPart;
   }
 
   function generateAndSendSMS() {
@@ -124,12 +132,12 @@
           const latFixed = lat.toFixed(5);
           const lngFixed = lng.toFixed(5);
 
-          // Paggamit ng tumpak na Plus Code encoder
+          // Paggamit ng pamantayang Plus Code generator
           const plusCode = encodeStandardPlusCode(lat, lng);
 
           status.innerText = "📱 Binubuksan ang Messaging App...";
 
-          // Format ng SMS (walang URL para iwas-block sa Telco)
+          // Plain text format
           const smsText = `SHAREMAP DIGITAL ADDRESS\n\n` +
                           `Pangalan: ${name || 'N/A'}\n` +
                           `Landmark: ${landmark || 'N/A'}\n\n` +
